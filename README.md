@@ -1,6 +1,6 @@
 # Baymax Voice Assistant
 
-![Banner Image](sc.jpg) <!-- Replace with your banner image URL -->
+![Banner Image](Screenshot (278).png) <!-- Replace with your banner image URL -->
 
 ## Description
 Baymax is a simple voice assistant built using Python, Flask, and various libraries. It recognizes speech, converts text to speech using a custom voice, manages a to-do list, and interacts with external APIs for weather, news, trivia, and more.
