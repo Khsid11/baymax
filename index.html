@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Baymax</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #000; /* Black background */
+            color: #fff; /* White text */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh; /* Full height */
+            margin: 0; /* Remove default margin */
+            overflow: hidden; /* Prevent scrollbars due to stars */
+            position: relative; /* For positioning the stars */
+        }
+
+        #container {
+            width: 80%;
+            max-width: 600px;
+            background-color: #222; /* Dark gray background */
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            position: relative; /* For positioning the image */
+            z-index: 2; /* Ensure it appears above the stars */
+        }
+
+        #chat {
+            max-height: 300px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #444; /* Darker border */
+            border-radius: 5px;
+            background-color: #333; /* Slightly lighter gray */
+        }
+
+        .user {
+            text-align: right;
+            margin: 5px;
+        }
+
+        .bot {
+            text-align: left;
+            margin: 5px;
+        }
+
+        .input-area {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #444; /* Darker border */
+            border-radius: 5px;
+            margin-right: 10px;
+            background-color: #555; /* Darker input background */
+            color: #fff; /* White text */
+            font-size: 16px; /* Increase font size */
+        }
+
+        #send-button, #next-button {
+            padding: 10px;
+            background-color: #28a745; /* Green button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px; /* Increase font size */
+        }
+
+        #send-button:hover, #next-button:hover {
+            background-color: #218838; /* Darker green on hover */
+        }
+
+        .response {
+            padding: 5px;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 16px; /* Increase font size for messages */
+        }
+
+        .user-response {
+            background-color: #000000; /* User message background */
+            text-align: right;
+        }
+
+        .bot-response {
+            background-color: #0b0c0e; /* Bot message background */
+        }
+
+        /* Baymax image styles */
+        #baymax-image {
+            position: absolute;
+            top: -160px; /* Adjust position above chat */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px; /* Set larger width according to your image */
+            z-index: 1; /* Ensure it appears above other elements */
+            animation: float 3s ease-in-out infinite; /* Add floating animation */
+        }
+
+        @keyframes float {
+            0% { transform: translate(-50%, -5px); }
+            50% { transform: translate(-50%, 5px); }
+            100% { transform: translate(-50%, -5px); }
+        }
+
+        /* Sparkle animation */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            pointer-events: none; /* Prevent interaction with stars */
+            z-index: 0; /* Behind other elements */
+        }
+
+        .star {
+            position: absolute;
+            border-radius: 50%;
+            background: white;
+            animation: twinkle 2s infinite alternate; /* Twinkle animation */
+        }
+
+        @keyframes twinkle {
+            0% {
+                opacity: 0;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1.5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars"></div> <!-- Div for sparkle stars -->
+    <div id="container">
+        <img id="baymax-image" src="{{ url_for('static', filename='baymax.png') }}" alt="Baymax" />
+        <!-- Update image path -->
+        <h1>Baymax</h1>
+        <div id="chat"></div>
+        <div class="input-area">
+            <input type="text" id="user-input" placeholder="Type your message..." autofocus>
+            <button id="send-button"><i class="fas fa-paper-plane"></i></button>
+        </div>
+        <button id="next-button">Next Question</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.min.js"></script>
+    <script>
+        const socket = io();
+
+        // Create stars
+        function createStars() {
+            const starsContainer = document.querySelector('.stars');
+            for (let i = 0; i < 100; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                const size = Math.random() * 3 + 2; // Random size between 2 and 5
+                star.style.width = `${size}px`;
+                star.style.height = `${size}px`;
+                star.style.top = `${Math.random() * 100}vh`;
+                star.style.left = `${Math.random() * 100}vw`;
+                star.style.animationDuration = `${Math.random() * 2 + 1}s`; // Random duration
+                starsContainer.appendChild(star);
+            }
+        }
+
+        // Send message
+        document.getElementById('send-button').addEventListener('click', () => {
+            const userInput = document.getElementById('user-input').value;
+            addMessage(userInput, 'user');
+            socket.emit('user_input', { message: userInput }); // Emit user input
+            document.getElementById('user-input').value = ''; // Clear input
+        });
+
+        // Add message to chat
+        function addMessage(message, sender) {
+            const chat = document.getElementById('chat');
+            const messageElement = document.createElement('div');
+            messageElement.className = `response ${sender}-response`;
+            messageElement.textContent = message;
+            chat.appendChild(messageElement);
+            chat.scrollTop = chat.scrollHeight; // Auto-scroll to bottom
+        }
+
+        // Listen for bot messages
+        socket.on('bot_response', (data) => {
+            addMessage(data.message, 'bot');
+        });
+
+        // Next button functionality
+        document.getElementById('next-button').addEventListener('click', () => {
+            // Logic for the next question can be added here
+            addMessage("Next question feature coming soon!", 'bot');
+        });
+
+        createStars(); // Create stars on page load
+    </script>
+</body>
+</html>
