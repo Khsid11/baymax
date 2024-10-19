@@ -383,7 +383,7 @@ def google_search(user_input):
 
 # Get Weather Function
 def get_weather(location):
-    api_key = '4e2fbbdcef9845c0827161516240710'  # Replace with your WeatherAPI key
+    api_key = ''  # Replace with your WeatherAPI key
     url = f"http://api.weatherapi.com/v1/current.json?key={api_key}&q={location}&aqi=no"
     
     response = requests.get(url).json()
@@ -425,7 +425,7 @@ def view_todo_list():
 
 # Get News Function
 def get_news():
-    url = 'https://newsapi.org/v2/top-headlines?country=us&apiKey=49e391e7066c4158937096fb5e55fb5d'  # Replace with your NewsAPI key
+    url = ''  # Replace with your NewsAPI key
     response = requests.get(url).json()
     articles = response['articles'][:5]
     
@@ -437,7 +437,7 @@ def get_news():
 
 # Get Trivia Function
 def get_trivia():
-    url = "https://opentdb.com/api.php?amount=1&type=multiple"
+    url = ""
     response = requests.get(url).json()
     
     if response['response_code'] == 0:
